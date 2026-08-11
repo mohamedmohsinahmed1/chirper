@@ -30,40 +30,48 @@ class ChirpController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        //
-    }
+   public function store(Request $request)
+{
+    $validated = $request->validate([
+        'message' => 'required|string|max:255',
+    ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+    // Use the authenticated user
+    auth()->user()->chirps()->create($validated);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+    return redirect('/')->with('success', 'Your chirp has been posted!');
+}
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+public function edit(Chirp $chirp)
+{
+if ($chirp->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+    return view('chirps.edit', compact('chirp'));
+}
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+public function update(Request $request, Chirp $chirp)
+{
+ if ($chirp->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+    $validated = $request->validate([
+        'message' => 'required|string|max:255',
+    ]);
+
+    $chirp->update($validated);
+
+    return redirect('/')->with('success', 'Chirp updated!');
+}
+
+public function destroy(Chirp $chirp)
+{
+    if ($chirp->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
+    $chirp->delete();
+
+    return redirect('/')->with('success', 'Chirp deleted!');
+}
 }
